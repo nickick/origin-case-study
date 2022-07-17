@@ -1,0 +1,27 @@
+{
+  "name": "origin-case-study",
+  "version": "1.0.0",
+  "description": "NFT collection rarity score calculation and analysis assignment",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js",
+    "lint": "eslint . --ext .ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nickick/origin-case-study.git"
+  },
+  "author": "Nick Hong",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nickick/origin-case-study/issues"
+  },
+  "homepage": "https://github.com/nickick/origin-case-study#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.30.6",
+    "@typescript-eslint/parser": "^5.30.6",
+    "eslint": "^8.20.0",
+    "typescript": "^4.7.4"
+  }
+}
