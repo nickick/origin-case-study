@@ -18,7 +18,7 @@ function countAttributes () {
         }
       // or of this attribute trait type and value, then set this value and type
       } else if (!attributesMap[trait_type][value]) {
-        attributesMap[trait_type][value] = 1
+        attributesMap[trait_type][value] = 1;
       // otherwise increment count by 1
       } else {
         attributesMap[trait_type][value] += 1;
@@ -30,7 +30,7 @@ function countAttributes () {
 }
 
 /**
- * Adds a ratio to the map
+ * Adds a ratio to the map.
  * @param mapping mapping of traits with counts
  * @returns {object} mapping of traits, now with a ratio key
  */
@@ -39,10 +39,18 @@ function getRatioMapping (mapping) {
 
   for (const trait_type in mapping) {
     if (!ratioMapping[trait_type]) {
-      ratioMapping[trait_type] = {}
+      // use a trait count to keep number of total possible traits
+      // rarer traits are those that are rare in a smaller set of choices
+      ratioMapping[trait_type] = {
+        traitCount: 0,
+      };
     }
 
     for (const trait in mapping[trait_type]) {
+      // increment trait count when encountering a trait in this mapping for first time
+      if (!ratioMapping[trait_type][trait]) {
+        ratioMapping[trait_type].traitCount += 1;
+      }
       ratioMapping[trait_type][trait] = mapping[trait_type][trait] / penguinCount;
     }
   }
@@ -60,8 +68,11 @@ function getRatioMapping (mapping) {
 function setRarity (penguins, ratioMapping) {
   penguins.forEach(penguin => {
     let rarity = 0;
-    penguin.attributes.forEach(({trait_type, value}) => {
-      rarity += 1 / ratioMapping[trait_type][value];
+    penguin.attributes.forEach((attribute) => {
+      const { trait_type, value } = attribute;
+      const attributeRarity = 1 / ratioMapping[trait_type][value] * 1 / ratioMapping[trait_type].traitCount;
+      attribute.rarity = attributeRarity;
+      rarity += attributeRarity;
     })
     penguin.rarity = rarity;
   });
