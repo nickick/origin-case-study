@@ -14,19 +14,14 @@ function countAttributes () {
       // if first time this attribute trait type is found, set it with a value count of 1 for this value
       if (!attributesMap[trait_type]) {
         attributesMap[trait_type] = {
-          [value]: {
-            count: 1,
-          }
+          [value]: 1
         }
       // or of this attribute trait type and value, then set this value and type
       } else if (!attributesMap[trait_type][value]) {
-        attributesMap[trait_type][value] = {
-          count: 1,
-        }
+        attributesMap[trait_type][value] = 1
       // otherwise increment count by 1
       } else {
-        const newCount = attributesMap[trait_type][value].count + 1;
-        attributesMap[trait_type][value].count = newCount;
+        attributesMap[trait_type][value] += 1;
       }
     })
   })
@@ -39,14 +34,20 @@ function countAttributes () {
  * @param mapping mapping of traits with counts
  * @returns {object} mapping of traits, now with a ratio key
  */
-function setRatio (mapping) {
+function getRatioMapping (mapping) {
+  const ratioMapping = {};
+
   for (const trait_type in mapping) {
+    if (!ratioMapping[trait_type]) {
+      ratioMapping[trait_type] = {}
+    }
+
     for (const trait in mapping[trait_type]) {
-      mapping[trait_type][trait].ratio = mapping[trait_type][trait].count / penguinCount;
+      ratioMapping[trait_type][trait] = mapping[trait_type][trait] / penguinCount;
     }
   }
 
-  return mapping;
+  return ratioMapping;
 }
 
 /**
@@ -60,7 +61,7 @@ function setRarity (penguins, ratioMapping) {
   penguins.forEach(penguin => {
     let rarity = 0;
     penguin.attributes.forEach(({trait_type, value}) => {
-      rarity += 1 / ratioMapping[trait_type][value].ratio;
+      rarity += 1 / ratioMapping[trait_type][value];
     })
     penguin.rarity = rarity;
   });
@@ -68,7 +69,7 @@ function setRarity (penguins, ratioMapping) {
   return penguins;
 }
 
-const ratioMapping = setRatio(countAttributes())
+const ratioMapping = getRatioMapping(countAttributes());
 const penguinsWithRarity = setRarity(PudgyPenguins, ratioMapping);
 const penguinsSortedByRarity = penguinsWithRarity.sort((a, b) => b.rarity - a.rarity)
 
