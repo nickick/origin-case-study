@@ -49,4 +49,27 @@ function setRatio (mapping) {
   return mapping;
 }
 
-console.log(setRatio(countAttributes()))
+/**
+ * Adds a rarity to a Penguin
+ * Assumes rarity is inversely proportional to ratio / commonality of trait, so * using sum of 1/ratio per ratio per penguin
+ * @param penguins Penguins with traits
+ * @param ratioMapping Mapping of traits with ratios
+ * @returns {Array} Penguins with a rarity assignment, with no changes to order
+ */
+function setRarity (penguins, ratioMapping) {
+  penguins.forEach(penguin => {
+    let rarity = 0;
+    penguin.attributes.forEach(({trait_type, value}) => {
+      rarity += 1 / ratioMapping[trait_type][value].ratio;
+    })
+    penguin.rarity = rarity;
+  });
+
+  return penguins;
+}
+
+const ratioMapping = setRatio(countAttributes())
+const penguinsWithRarity = setRarity(PudgyPenguins, ratioMapping);
+const penguinsSortedByRarity = penguinsWithRarity.sort((a, b) => b.rarity - a.rarity)
+
+console.log(penguinsSortedByRarity);
