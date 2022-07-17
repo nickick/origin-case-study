@@ -25,5 +25,5 @@ Question:
 Bonus questions (optional):
 Note: The questions are in arbitrary order. Pick any of them that is interesting to you. Or all of them if you feel like it!
 - Bonus 1: Compare the scores your algorithm produces against scores produced by other tools and marketplaces (https://marketplace.pudgypenguins.com, https://gem.xyz, https://raritysniper.com, …)
-- Bonus 2: Write a script to fetch all the metadata for every NFT of a collection directly from the collection's official location (vs using our pre-downloaded data set). For example the metadata for the Pudgy Penguin NFT with ID #1 is hosted here.
+- Bonus 2: Write a script to fetch all the metadata for every NFT of a collection directly from the collection's official location (vs using our pre-downloaded data set). For example the metadata for the Pudgy Penguin NFT with ID #1 is [hosted here](https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs/1).
 - Bonus 3: Analyze the correlation between the rarity ranking your algorithm produces with the 2ndary sales transaction volume and price on a NFT marketplace of your choice. Hint: this LooksRare API could be used to fetch the data
