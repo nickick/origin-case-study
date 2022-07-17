@@ -1,6 +1,10 @@
 import PudgyPenguins from './PudgyPenguin.json';
 const penguinCount = PudgyPenguins.length;
 
+/**
+ * Adds up number of each trait and returns it in a map
+ * @returns {object} mapping of traits with counts
+ */
 function countAttributes () {
   const attributesMap = {};
   
@@ -30,6 +34,11 @@ function countAttributes () {
   return attributesMap;
 }
 
+/**
+ * Adds a ratio to the map
+ * @param mapping mapping of traits with counts
+ * @returns {object} mapping of traits, now with a ratio key
+ */
 function setRatio (mapping) {
   for (const trait_type in mapping) {
     for (const trait in mapping[trait_type]) {
