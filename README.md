@@ -6,7 +6,7 @@ $> npm run start
 ```
 To run rarity ranking on fetched Pudgy Penguins from IPFS:
 ```
-$> npm run start -- --remoteFetch=true
+$> npm run start -- --fetchRemote
 ```
 
 
