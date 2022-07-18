@@ -15,8 +15,12 @@ const argv = key => {
 
 // const penguinCount = PudgyPenguins.length;
 const penguinIpfsRoot = 'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs'
-const penguinCount = argv('ipfs') ? 8888 : PudgyPenguins.length;
+const penguinCount = argv('fetchRemote') ? 8888 : PudgyPenguins.length;
 
+/**
+ * Function to fetch Pudgy Penguins from IPFS. Runs with 100 calls concurrently, seems like at 200+ we start getting errors on fetch.
+ * @returns {Array} array of Pudgy Penguins
+ */
 async function fetchPenguins () {
   const penguins = Array.from(Array(penguinCount).keys());
 
@@ -96,6 +100,7 @@ function getRatioMapping (mapping) {
 /**
  * Adds a rarity to a Penguin
  * Assumes rarity is inversely proportional to ratio / commonality of trait, so * using sum of 1/ratio per ratio per penguin
+ * Also assumes rarity is inversely proportional to number of total possible   * traits in a given trait_type
  * @param penguins Penguins with traits
  * @param ratioMapping Mapping of traits with ratios
  * @returns {Array} Penguins with a rarity assignment, with no changes to order
@@ -115,15 +120,15 @@ function setRarity (penguins, ratioMapping) {
   return penguins;
 }
 
-async function sortByRarity (ipfs) {
-  const penguins = ipfs ? await fetchPenguins() : PudgyPenguins;
+async function sortByRarity (fetchRemote) {
+  const penguins = fetchRemote ? await fetchPenguins() : PudgyPenguins;
   const ratioMapping = getRatioMapping(countAttributes(penguins));
   const penguinsWithRarity = setRarity(penguins, ratioMapping);
   return penguinsWithRarity.sort((a, b) => b.rarity - a.rarity);
 }
 
 async function main () {
-  console.log(await sortByRarity(argv('ipfs')));
+  console.log(await sortByRarity(argv('fetchRemote')));
 }
 
 main();
