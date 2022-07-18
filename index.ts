@@ -86,7 +86,7 @@ function countAttributes (penguins: Penguin[]): [AttributeMapping, number] {
   return [attributesMap, penguins.length];
 }
 
-type RatioMapping = {
+type RarenessMapping = {
   [traitType: string]: {
     traitCount: number,
     [trait: string]: number,
@@ -94,48 +94,48 @@ type RatioMapping = {
 }
 
 /**
- * Adds a ratio to the map.
+ * Create a rareness map. { [trait_type]: { [trait_value]: n }}, where n is between 0 and 1
  * @param [mapping, count] mapping of trait counts and a total count of NFTs
- * @returns {object} mapping of traits, now with a ratio key
+ * @returns {object} mapping of rareness
  */
-function getRatioMapping ([mapping, count]: [AttributeMapping, number]): RatioMapping {
-  const ratioMapping = {};
+function getRarenessMapping ([mapping, count]: [AttributeMapping, number]): RarenessMapping {
+  const rarenessMapping = {};
 
   for (const trait_type in mapping) {
-    if (!ratioMapping[trait_type]) {
+    if (!rarenessMapping[trait_type]) {
       // use a trait count to keep number of total possible traits
       // rarer traits are those that are rare in a smaller set of choices
-      ratioMapping[trait_type] = {
+      rarenessMapping[trait_type] = {
         traitCount: 0,
       };
     }
 
     for (const trait in mapping[trait_type]) {
       // increment trait count when encountering a trait in this mapping for first time
-      if (!ratioMapping[trait_type][trait]) {
-        ratioMapping[trait_type].traitCount += 1;
+      if (!rarenessMapping[trait_type][trait]) {
+        rarenessMapping[trait_type].traitCount += 1;
       }
-      ratioMapping[trait_type][trait] = mapping[trait_type][trait] / count;
+      rarenessMapping[trait_type][trait] = mapping[trait_type][trait] / count;
     }
   }
 
-  return ratioMapping;
+  return rarenessMapping;
 }
 
 /**
  * Adds a rarity to a Penguin
- * Assumes rarity is inversely proportional to ratio / commonality of trait, so using sum of 1/ratio per ratio per penguin
- * Also assumes rarity is inversely proportional to number of total possible traits in a given trait_type
+ * Sums the inverses of the rarenesses (sum 1/n)
+ * Also adds rarity inversely proportional to number of total possible traits in a given trait_type
  * @param penguins Penguins with traits
- * @param ratioMapping Mapping of traits with ratios
+ * @param rarenessMapping Mapping of traits with rareness
  * @returns {Array} Penguins with a rarity assignment, with no changes to order
  */
-function setRarity (penguins: Penguin[], ratioMapping: RatioMapping): Penguin[] {
+function setRarity (penguins: Penguin[], rarenessMapping: RarenessMapping): Penguin[] {
   penguins.forEach(penguin => {
     let rarity = 0;
     penguin.attributes.forEach((attribute) => {
       const { trait_type, value } = attribute;
-      rarity += 1 / ratioMapping[trait_type][value] * 1 / ratioMapping[trait_type].traitCount;
+      rarity += 1 / rarenessMapping[trait_type][value] * 1 / rarenessMapping[trait_type].traitCount;
     })
     penguin.rarity = rarity;
   });
@@ -149,8 +149,8 @@ const penguinCount = 8888;
 
 async function sortByRarity (fetchRemote) {
   const penguins = fetchRemote ? await fetchPenguins(penguinIpfsRoot, penguinCount) : PudgyPenguins;
-  const ratioMapping = getRatioMapping(countAttributes(penguins));
-  const penguinsWithRarity = setRarity(penguins, ratioMapping);
+  const rarenessMapping = getRarenessMapping(countAttributes(penguins));
+  const penguinsWithRarity = setRarity(penguins, rarenessMapping);
   return penguinsWithRarity.sort((a, b) => b.rarity - a.rarity);
 }
 
