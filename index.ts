@@ -1,15 +1,50 @@
+import PromisePool from '@supercharge/promise-pool';
+import process from 'process';
 import PudgyPenguins from './PudgyPenguin.json';
-const penguinCount = PudgyPenguins.length;
+
+// taken from https://stackoverflow.com/questions/4351521/how-do-i-pass-command-line-arguments-to-a-node-js-program
+// wanted a quick way to toggle where to pull penguins from
+const argv = key => {
+  // Return true if the key exists and a value is defined
+  if ( process.argv.includes( `--${ key }` ) ) return true;
+  const value = process.argv.find( element => element.startsWith( `--${ key }=` ) );
+  // Return null if the key does not exist and a value is not defined
+  if ( !value ) return null;
+  return value.replace( `--${ key }=` , '' );
+}
+
+// const penguinCount = PudgyPenguins.length;
+const penguinIpfsRoot = 'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs'
+const penguinCount = argv('ipfs') ? 8888 : PudgyPenguins.length;
+
+async function fetchPenguins () {
+  const penguins = Array.from(Array(penguinCount).keys());
+
+  const { results, errors } = await PromisePool
+    .for(penguins)
+    .withConcurrency(100)
+    .process(async id => {
+      const response = await fetch(`${penguinIpfsRoot}/${id}`)
+      const data = await response.json();
+      console.log('Fetching PudgyPenguin ID #', id);
+      return data;
+    })
+
+  console.log(errors);
+
+  return results;
+}
 
 /**
  * Adds up number of each trait and returns it in a map
+ * @param penguins array of penguins with name and attributes array
  * @returns {object} mapping of traits with counts
  */
-function countAttributes () {
+function countAttributes (penguins) {
   const attributesMap = {};
   
   // set up a mapping of attributes across PudgyPenguins, getting total counts
-  PudgyPenguins.forEach(({attributes}) => {
+  penguins.forEach(({attributes}) => {
     attributes.forEach(({trait_type, value}) => {
       // if first time this attribute trait type is found, set it with a value count of 1 for this value
       if (!attributesMap[trait_type]) {
@@ -80,8 +115,15 @@ function setRarity (penguins, ratioMapping) {
   return penguins;
 }
 
-const ratioMapping = getRatioMapping(countAttributes());
-const penguinsWithRarity = setRarity(PudgyPenguins, ratioMapping);
-const penguinsSortedByRarity = penguinsWithRarity.sort((a, b) => b.rarity - a.rarity)
+async function sortByRarity (ipfs) {
+  const penguins = ipfs ? await fetchPenguins() : PudgyPenguins;
+  const ratioMapping = getRatioMapping(countAttributes(penguins));
+  const penguinsWithRarity = setRarity(penguins, ratioMapping);
+  return penguinsWithRarity.sort((a, b) => b.rarity - a.rarity);
+}
 
-console.log(penguinsSortedByRarity);
+async function main () {
+  console.log(await sortByRarity(argv('ipfs')));
+}
+
+main();

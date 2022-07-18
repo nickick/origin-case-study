@@ -19,9 +19,13 @@
   },
   "homepage": "https://github.com/nickick/origin-case-study#readme",
   "devDependencies": {
+    "@types/node": "^18.0.5",
     "@typescript-eslint/eslint-plugin": "^5.30.6",
     "@typescript-eslint/parser": "^5.30.6",
     "eslint": "^8.20.0",
     "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "@supercharge/promise-pool": "^2.3.0"
   }
 }
