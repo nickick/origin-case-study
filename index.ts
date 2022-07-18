@@ -30,7 +30,9 @@ async function fetchPenguins () {
     .process(async id => {
       const response = await fetch(`${penguinIpfsRoot}/${id}`)
       const data = await response.json();
-      console.log('Fetching PudgyPenguin ID #', id);
+      if (id % 100 === 0) {
+        console.log('Fetching PudgyPenguin ID #', id);
+      }
       return data;
     })
 
