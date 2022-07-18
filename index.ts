@@ -1,6 +1,20 @@
 import PromisePool from '@supercharge/promise-pool';
 import process from 'process';
-import PudgyPenguins from './PudgyPenguin.json';
+import PudgyPenguinsRaw from './PudgyPenguin.json';
+
+type Attribute = {
+  value: string;
+  trait_type: string;
+}
+
+type Penguin = {
+  name: string;
+  attributes: Attribute[];
+  image?: string;
+  rarity?: number;
+}
+
+const PudgyPenguins: Penguin[] = PudgyPenguinsRaw;
 
 // taken from https://stackoverflow.com/questions/4351521/how-do-i-pass-command-line-arguments-to-a-node-js-program
 // wanted a quick way to toggle where to pull penguins from
@@ -17,7 +31,7 @@ const argv = key => {
  * Function to fetch Pudgy Penguins from IPFS. Runs with 100 calls concurrently, seems like at 200+ we start getting errors on fetch.
  * @returns {Array} array of Pudgy Penguins
  */
-async function fetchPenguins (url, count) {
+async function fetchPenguins (url: string, count: number): Promise<Penguin[]> {
   const penguins = Array.from(Array(count).keys());
 
   const { results, errors } = await PromisePool
@@ -37,12 +51,18 @@ async function fetchPenguins (url, count) {
   return results;
 }
 
+type AttributeMapping = {
+  [traitType: string]: {
+    [trait: string]: number,
+  }
+}
+
 /**
  * Adds up number of each trait and returns it in a map
  * @param penguins array of penguins with name and attributes array
- * @returns [object, number] tuple with a mapping of traits with counts and total penguin count
+ * @returns {[object, number]} mapping of traits with counts, and a total penguin count
  */
-function countAttributes (penguins): [object, number] {
+function countAttributes (penguins: Penguin[]): [AttributeMapping, number] {
   const attributesMap = {};
   
   // set up a mapping of attributes across PudgyPenguins, getting total counts
@@ -66,12 +86,19 @@ function countAttributes (penguins): [object, number] {
   return [attributesMap, penguins.length];
 }
 
+type RatioMapping = {
+  [traitType: string]: {
+    traitCount: number,
+    [trait: string]: number,
+  }
+}
+
 /**
  * Adds a ratio to the map.
  * @param [mapping, count] mapping of trait counts and a total count of NFTs
  * @returns {object} mapping of traits, now with a ratio key
  */
-function getRatioMapping ([mapping, count]) {
+function getRatioMapping ([mapping, count]: [AttributeMapping, number]): RatioMapping {
   const ratioMapping = {};
 
   for (const trait_type in mapping) {
@@ -97,13 +124,13 @@ function getRatioMapping ([mapping, count]) {
 
 /**
  * Adds a rarity to a Penguin
- * Assumes rarity is inversely proportional to ratio / commonality of trait, so * using sum of 1/ratio per ratio per penguin
- * Also assumes rarity is inversely proportional to number of total possible   * traits in a given trait_type
+ * Assumes rarity is inversely proportional to ratio / commonality of trait, so using sum of 1/ratio per ratio per penguin
+ * Also assumes rarity is inversely proportional to number of total possible traits in a given trait_type
  * @param penguins Penguins with traits
  * @param ratioMapping Mapping of traits with ratios
  * @returns {Array} Penguins with a rarity assignment, with no changes to order
  */
-function setRarity (penguins, ratioMapping) {
+function setRarity (penguins: Penguin[], ratioMapping: RatioMapping): Penguin[] {
   penguins.forEach(penguin => {
     let rarity = 0;
     penguin.attributes.forEach((attribute) => {
