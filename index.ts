@@ -46,7 +46,7 @@ async function fetchPenguins (url: string, count: number): Promise<Penguin[]> {
       return data;
     })
 
-  console.log(errors);
+  console.log('Errors while fetching:', errors);
 
   return results;
 }
