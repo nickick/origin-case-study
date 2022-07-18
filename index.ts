@@ -58,7 +58,7 @@ type AttributeMapping = {
 }
 
 /**
- * Adds up number of each trait and returns it in a map
+ * Adds up number of each trait, returns count in a map and a total count of penguins
  * @param penguins array of penguins with name and attributes array
  * @returns {[object, number]} mapping of traits with counts, and a total penguin count
  */
@@ -94,11 +94,12 @@ type RarenessMapping = {
 }
 
 /**
- * Create a rareness map. { [trait_type]: { [trait_value]: n }}, where n is between 0 and 1
- * @param [mapping, count] mapping of trait counts and a total count of NFTs
+ * Create a rareness map. { [trait_type]: { [trait_value]: n }}, where n is the number of times the trait appears / total number of penguins
+ * @param mapping mapping of trait counts
+ * @param count total count of NFTs
  * @returns {object} mapping of rareness
  */
-function getRarenessMapping ([mapping, count]: [AttributeMapping, number]): RarenessMapping {
+function getRarenessMapping (mapping: AttributeMapping, count: number): RarenessMapping {
   const rarenessMapping = {};
 
   for (const trait_type in mapping) {
@@ -123,9 +124,7 @@ function getRarenessMapping ([mapping, count]: [AttributeMapping, number]): Rare
 }
 
 /**
- * Adds a rarity to a Penguin
- * Sums the inverses of the rarenesses (sum 1/n)
- * Also adds rarity inversely proportional to number of total possible traits in a given trait_type
+ * Adds a rarity score to a Penguin. Rarity score is a sum of the inverses of the rarenesses multiplied by the inverse of the number of total possible traits in a given trait_type.
  * @param penguins Penguins with traits
  * @param rarenessMapping Mapping of traits with rareness
  * @returns {Array} Penguins with a rarity assignment, with no changes to order
@@ -149,7 +148,8 @@ const penguinCount = 8888;
 
 async function sortByRarity (fetchRemote) {
   const penguins = fetchRemote ? await fetchPenguins(penguinIpfsRoot, penguinCount) : PudgyPenguins;
-  const rarenessMapping = getRarenessMapping(countAttributes(penguins));
+  const [attributesMap, count] = countAttributes(penguins);
+  const rarenessMapping = getRarenessMapping(attributesMap, count);
   const penguinsWithRarity = setRarity(penguins, rarenessMapping);
   return penguinsWithRarity.sort((a, b) => b.rarity - a.rarity);
 }
