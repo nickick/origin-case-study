@@ -13,22 +13,18 @@ const argv = key => {
   return value.replace( `--${ key }=` , '' );
 }
 
-// const penguinCount = PudgyPenguins.length;
-const penguinIpfsRoot = 'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs'
-const penguinCount = argv('fetchRemote') ? 8888 : PudgyPenguins.length;
-
 /**
  * Function to fetch Pudgy Penguins from IPFS. Runs with 100 calls concurrently, seems like at 200+ we start getting errors on fetch.
  * @returns {Array} array of Pudgy Penguins
  */
-async function fetchPenguins () {
-  const penguins = Array.from(Array(penguinCount).keys());
+async function fetchPenguins (url, count) {
+  const penguins = Array.from(Array(count).keys());
 
   const { results, errors } = await PromisePool
     .for(penguins)
     .withConcurrency(100)
     .process(async id => {
-      const response = await fetch(`${penguinIpfsRoot}/${id}`)
+      const response = await fetch(`${url}/${id}`)
       const data = await response.json();
       if (id % 100 === 0) {
         console.log('Fetching PudgyPenguin ID #', id);
@@ -44,9 +40,9 @@ async function fetchPenguins () {
 /**
  * Adds up number of each trait and returns it in a map
  * @param penguins array of penguins with name and attributes array
- * @returns {object} mapping of traits with counts
+ * @returns [object, number] tuple with a mapping of traits with counts and total penguin count
  */
-function countAttributes (penguins) {
+function countAttributes (penguins): [object, number] {
   const attributesMap = {};
   
   // set up a mapping of attributes across PudgyPenguins, getting total counts
@@ -67,15 +63,15 @@ function countAttributes (penguins) {
     })
   })
 
-  return attributesMap;
+  return [attributesMap, penguins.length];
 }
 
 /**
  * Adds a ratio to the map.
- * @param mapping mapping of traits with counts
+ * @param [mapping, count] mapping of trait counts and a total count of NFTs
  * @returns {object} mapping of traits, now with a ratio key
  */
-function getRatioMapping (mapping) {
+function getRatioMapping ([mapping, count]) {
   const ratioMapping = {};
 
   for (const trait_type in mapping) {
@@ -92,7 +88,7 @@ function getRatioMapping (mapping) {
       if (!ratioMapping[trait_type][trait]) {
         ratioMapping[trait_type].traitCount += 1;
       }
-      ratioMapping[trait_type][trait] = mapping[trait_type][trait] / penguinCount;
+      ratioMapping[trait_type][trait] = mapping[trait_type][trait] / count;
     }
   }
 
@@ -112,9 +108,7 @@ function setRarity (penguins, ratioMapping) {
     let rarity = 0;
     penguin.attributes.forEach((attribute) => {
       const { trait_type, value } = attribute;
-      const attributeRarity = 1 / ratioMapping[trait_type][value] * 1 / ratioMapping[trait_type].traitCount;
-      attribute.rarity = attributeRarity;
-      rarity += attributeRarity;
+      rarity += 1 / ratioMapping[trait_type][value] * 1 / ratioMapping[trait_type].traitCount;
     })
     penguin.rarity = rarity;
   });
@@ -122,8 +116,12 @@ function setRarity (penguins, ratioMapping) {
   return penguins;
 }
 
+// const penguinCount = PudgyPenguins.length;
+const penguinIpfsRoot = 'https://ipfs.io/ipfs/QmWXJXRdExse2YHRY21Wvh4pjRxNRQcWVhcKw4DLVnqGqs'
+const penguinCount = 8888;
+
 async function sortByRarity (fetchRemote) {
-  const penguins = fetchRemote ? await fetchPenguins() : PudgyPenguins;
+  const penguins = fetchRemote ? await fetchPenguins(penguinIpfsRoot, penguinCount) : PudgyPenguins;
   const ratioMapping = getRatioMapping(countAttributes(penguins));
   const penguinsWithRarity = setRarity(penguins, ratioMapping);
   return penguinsWithRarity.sort((a, b) => b.rarity - a.rarity);
