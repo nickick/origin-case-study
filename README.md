@@ -1,4 +1,16 @@
 # Origin Takehome Rarity Score Calculator
+## To run
+```
+$> npm install
+$> npm run start
+```
+To run rarity ranking on fetched Pudgy Penguins from IPFS:
+```
+$> npm run start -- --remoteFetch=true
+```
+
+
+---
 
 ## Instructions
 - You can take as long as you wish to complete the exercise
